@@ -4,11 +4,18 @@ import time
 from selenium import webdriver
 from datetime import datetime
 
+#　絶対パスを簡単に取得敵るようにする。
+from pathlib import Path
+
 # ドライブ位置設定
 driver_path = "driver/chromedriver"
 
 # 接続先のurl指定
 url = 'http://dedama.me/kc_chuo/'
+
+# ファイル保存用のファイル名指定
+nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+nowday = datetime.now().strftime("%Y_%m_%d")
 
 # クロームのオプションを保存するオブジェクト追加
 options = webdriver.ChromeOptions()
@@ -26,8 +33,7 @@ driver.get(url)
 # 5秒待ち
 time.sleep(5)
 
-# ファイルセーブ用のファイル名指定
-nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
 
 # 全体的なページのソースをdownloadページに保存
 with open('download/test_'+nowtime+'_(1).html','w',encoding='utf-8') as f:
@@ -46,8 +52,16 @@ driver.save_screenshot('screenshot/screenshot_'+nowtime+'.png')
 # テーブル取得
 data_table = driver.find_element_by_id("data-block")
 
+# 保存先フォルダ名
+table_dir_name = nowday
+table_dir_path = Path("table/"+table_dir_name)
+
+table_dir_path.mkdir(exist_ok=True)
+
+table_dir = str(table_dir_path.resolve())
+
 #　テーブル目録保存
-with open('table/table_'+nowtime+'.html','w',encoding='utf-8') as f:
+with open(table_dir+'/'+nowtime+'.html','w',encoding='utf-8') as f:
 	f.write(data_table.get_attribute('innerHTML'))
 
 # for文でテーブルごとのリンクに入る
