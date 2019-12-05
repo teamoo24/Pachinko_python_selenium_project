@@ -14,8 +14,8 @@ url = 'http://dedama.me/kc_chuo/'
 options = webdriver.ChromeOptions()
 
 # 画面を浮かばずに作動
-#options.add_argument('--headless')
-#driver = webdriver.Chrome(driver_path, options=options)
+options.add_argument('--headless')
+driver = webdriver.Chrome(driver_path, options=options)
 
 # 保存しておいたChrome driver呼び出し(ver.78対応)
 driver = webdriver.Chrome(driver_path)
@@ -30,9 +30,29 @@ time.sleep(5)
 nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
 # 全体的なページのソースをdownloadページに保存
-with open('download/test_'+nowtime+'.html','w',encoding='utf-8') as f:
+with open('download/test_'+nowtime+'_(1).html','w',encoding='utf-8') as f:
 	f.write(driver.page_source)
 
+# frame変更
+driver.switch_to.frame(driver.find_element_by_css_selector("frame[name='contents']"))
+
+# 全体的なページのソースをdownloadページに保存
+with open('download/test_'+nowtime+'_(2).html','w',encoding='utf-8') as f:
+	f.write(driver.page_source)
+
+# 現在フレームのスクリーンショット
+driver.save_screenshot('screenshot/screenshot_'+nowtime+'.png')
+
+# テーブル取得
+data_table = driver.find_element_by_id("data-block")
+
+#　テーブル目録保存
+with open('table/table_'+nowtime+'.html','w',encoding='utf-8') as f:
+	f.write(data_table.get_attribute('innerHTML'))
+
+# for文でテーブルごとのリンクに入る
+
+# link先のスクリーンショットを撮る
 
 # 終了
 driver.quit()
