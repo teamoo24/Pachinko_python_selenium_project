@@ -23,7 +23,7 @@ driver.get(url)
 time.sleep(5)
 nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
-with open('download/test_'+nowtime+'.html','w') as f:
+with open('download/test_'+nowtime+'.html','w',encoding='utf-8') as f:
 	f.write(driver.page_source)
 
 
