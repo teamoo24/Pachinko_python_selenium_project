@@ -1,4 +1,4 @@
-download/
-driver/
-screenshot/
-table/
+download/*.html
+driver/*.exe
+screenshot/*.png
+table/*.html
