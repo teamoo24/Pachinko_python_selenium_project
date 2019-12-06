@@ -2,6 +2,7 @@
 import urllib.request
 import time
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from datetime import datetime
 
 #　絶対パスを簡単に取得敵るようにする。
@@ -27,46 +28,108 @@ driver = webdriver.Chrome(driver_path, options=options)
 # 保存しておいたChrome driver呼び出し(ver.78対応)
 driver = webdriver.Chrome(driver_path)
 
+# テーブル保存先の名前
+table_dir_name = nowday
+
+# テーブル情報収納ディレクトリ
+table_dir = None
+
+# ページ全体のソースを取得
+def get_page_source(driver, option):
+	# 全体的なページのソースをdownloadページに保存
+	with open('download/test_'+nowtime+option+'.html','w',encoding='utf-8') as f:
+		f.write(driver.page_source)
+
+def switch_driver(driver):
+	driver.switch_to.frame(driver.find_element_by_css_selector("frame[name='contents']"))
+
+# 現在のスクリーンショットを撮る
+def get_screenshot(driver, path):
+	
+	driver.save_screenshot(path)
+
+# テーブル情報を保存するメインディレクトリ指定
+def make_table_folder():
+	
+	# 保存先フォルダ名
+	table_dir_path = Path("table/"+table_dir_name)
+
+	# 今日の日付のフォルダーを生成(存在してる場合スキップ)
+	table_dir_path.mkdir(exist_ok=True)
+
+	global table_dir 
+
+	table_dir= str(table_dir_path.resolve())
+
+# テーブルの情報を保存
+# driver : 現在のdriverの情報
+# data_table : メインテーブル
+def get_table(driver):
+
+	# テーブル取得
+	data_table = driver.find_element_by_id("data-block")
+
+	# テーブル目録保存
+	with open(table_dir+'/'+nowtime+'.html','w',encoding='utf-8') as f:
+		f.write(data_table.get_attribute('innerHTML'))
+
+	# trのリストを取得
+	trs = data_table.find_elements(By.TAG_NAME, "tr")
+
+	for i in range(1,len(trs)):
+		
+		if(i > 1):
+			switch_driver(driver)
+		get_page_source(driver, str(i))
+		data_table = driver.find_element_by_id("data-block")
+		
+		#取得テーブル表示
+		print(data_table)
+		print("-----------------------------------")
+		# trのリストを取得
+		trs = data_table.find_elements(By.TAG_NAME, "tr")
+
+		tds = trs[i].find_elements(By.TAG_NAME, "td")
+
+		for j in range(0, len(tds)+1):
+			
+			for a in driver.find_elements_by_xpath("/html/body/div/div[2]/table/tbody/tr["+str(i)+"]/td["+str(j)+"]/a"):
+    			# for文でテーブルごとのリンクに入る
+				kishu_name = str(a.get_attribute('innerHTML'))
+	   			
+	   			# 保存先フォルダ名
+				kishu_path = Path(table_dir+"/"+kishu_name)
+
+				# 今日の日付のフォルダーを生成(存在してる場合スキップ)
+				kishu_path.mkdir(exist_ok=True)
+
+				a.click()
+
+				# 出玉テーブルのスクリーンショット
+				get_screenshot(driver, str(kishu_path)+'/screenshot_'+nowtime+'.png')
+				
+				# 本のページに戻る
+				driver.back()
+
+				time.sleep(5)
+
 # ブラウザ立ち上げ
 driver.get(url)
 
 # 5秒待ち
 time.sleep(5)
 
-
-
-# 全体的なページのソースをdownloadページに保存
-with open('download/test_'+nowtime+'_(1).html','w',encoding='utf-8') as f:
-	f.write(driver.page_source)
-
 # frame変更
-driver.switch_to.frame(driver.find_element_by_css_selector("frame[name='contents']"))
-
-# 全体的なページのソースをdownloadページに保存
-with open('download/test_'+nowtime+'_(2).html','w',encoding='utf-8') as f:
-	f.write(driver.page_source)
+switch_driver(driver)
 
 # 現在フレームのスクリーンショット
-driver.save_screenshot('screenshot/screenshot_'+nowtime+'.png')
+# driver.save_screenshot('screenshot/screenshot_'+nowtime+'.png')
 
-# テーブル取得
-data_table = driver.find_element_by_id("data-block")
+# テーブル情報保存フォルダー作成
+make_table_folder()
 
-# 保存先フォルダ名
-table_dir_name = nowday
-table_dir_path = Path("table/"+table_dir_name)
-
-table_dir_path.mkdir(exist_ok=True)
-
-table_dir = str(table_dir_path.resolve())
-
-#　テーブル目録保存
-with open(table_dir+'/'+nowtime+'.html','w',encoding='utf-8') as f:
-	f.write(data_table.get_attribute('innerHTML'))
-
-# for文でテーブルごとのリンクに入る
-
-# link先のスクリーンショットを撮る
+# 確認用のテーブルのスクリーンショット
+get_table(driver)
 
 # 終了
 driver.quit()
