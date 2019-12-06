@@ -45,7 +45,11 @@ def switch_driver(driver):
 
 # 現在のスクリーンショットを撮る
 def get_screenshot(driver, path):
-	
+	page_width = driver.execute_script('return document.body.scrollWidth')
+	page_height = driver.execute_script('return document.body.scrollHeight')
+
+	driver.set_window_size(page_width, page_height)	
+
 	driver.save_screenshot(path)
 
 # テーブル情報を保存するメインディレクトリ指定
@@ -83,35 +87,47 @@ def get_table(driver):
 		get_page_source(driver, str(i))
 		data_table = driver.find_element_by_id("data-block")
 		
-		#取得テーブル表示
-		print(data_table)
-		print("-----------------------------------")
 		# trのリストを取得
 		trs = data_table.find_elements(By.TAG_NAME, "tr")
 
 		tds = trs[i].find_elements(By.TAG_NAME, "td")
 
 		for j in range(0, len(tds)+1):
-			
-			for a in driver.find_elements_by_xpath("/html/body/div/div[2]/table/tbody/tr["+str(i)+"]/td["+str(j)+"]/a"):
-    			# for文でテーブルごとのリンクに入る
-				kishu_name = str(a.get_attribute('innerHTML'))
-	   			
-	   			# 保存先フォルダ名
-				kishu_path = Path(table_dir+"/"+kishu_name)
 
-				# 今日の日付のフォルダーを生成(存在してる場合スキップ)
-				kishu_path.mkdir(exist_ok=True)
+			try:
+				if(j > 1):
+					switch_driver(driver)
+				data_table = driver.find_element_by_id("data-block")
 
-				a.click()
+				# trのリストを取得
+				trs = data_table.find_elements(By.TAG_NAME, "tr")
+				tds = trs[i].find_elements(By.TAG_NAME, "td")
 
-				# 出玉テーブルのスクリーンショット
-				get_screenshot(driver, str(kishu_path)+'/screenshot_'+nowtime+'.png')
-				
-				# 本のページに戻る
-				driver.back()
 
-				time.sleep(5)
+				for a in driver.find_elements_by_xpath("/html/body/div/div[2]/table/tbody/tr["+str(i)+"]/td["+str(j)+"]/a"):
+					
+	    			# for文でテーブルごとのリンクに入る
+					kishu_name = str(a.get_attribute('innerHTML'))
+					print(kishu_name+"を作業")
+		   			# 保存先フォルダ名
+					kishu_path = Path(table_dir+"/"+kishu_name)
+
+					# 今日の日付のフォルダーを生成(存在してる場合スキップ)
+					kishu_path.mkdir(exist_ok=True)
+
+					a.click()
+
+					# 出玉テーブルのスクリーンショット
+					get_screenshot(driver, str(kishu_path)+'/screenshot_'+nowtime+'.png')
+					
+					# 本のページに戻る
+					driver.back()
+
+					time.sleep(2)
+
+			except NoSuchElementException:
+				print("get Error")
+				get_page_source(driver,"error")
 
 # ブラウザ立ち上げ
 driver.get(url)
