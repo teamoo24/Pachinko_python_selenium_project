@@ -2,3 +2,4 @@ download/*
 driver/*
 screenshot/*
 table/*
+sql_test.py
