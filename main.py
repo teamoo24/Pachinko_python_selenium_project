@@ -50,8 +50,8 @@ cur = conn.cursor()
 # ブラウザ立ち上げ
 driver.get(url)
 
-# 5秒待ち
-time.sleep(5)
+# 1秒待ち
+time.sleep(1)
 
 # frame変更
 main_func.switch_driver(driver)
@@ -59,11 +59,16 @@ main_func.switch_driver(driver)
 # データテーブル作成
 main_func.make_database(cur)
 
-# 一応テストようの
-main_func.get_table_test(driver, table_dir, nowtime, Path, time)
-
+# エラーが出るまで回す
+while(1):
+	# 情報をテーブルに入れる
+	main_func.get_table(driver, table_dir, nowtime, nowday, Path, time, cur)
 
 # sqlをコミット
 conn.commit()
+
+# 完了報告
+print(nowday+"の情報が保存されました。")
+
 # 終了
 driver.quit()
