@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotVisibleException
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import WebDriverException
 
 # 現在のスクリーンショットを撮る
 def get_screenshot(driver, path):
@@ -59,14 +60,15 @@ def insert_database(driver, kishu_name, nowday, time, By, cur):
 	pachinko_arr = []
 
 	for i in range(0,len(trs)):
-
 		try:
 			# tdのリストを取得
 			tds = trs[i].find_elements(By.TAG_NAME, "td")
 		except StaleElementReferenceException:
 			print("StaleElementReferenceException")
-			get_source(driver, "StaleElementReferenceException", nowday, driver.page_source)
-		
+			get_source(driver, "_StaleElementReferenceException_1", nowday, driver.page_source)
+			driver.back()
+			return False;
+
 		pachinko_ind = []
 
 		try:
@@ -80,7 +82,11 @@ def insert_database(driver, kishu_name, nowday, time, By, cur):
 				continue		
 		except StaleElementReferenceException:
 			print("StaleElementReferenceException")
-			get_source(driver, "StaleElementReferenceException", nowday, driver.page_source)
+			get_source(driver, "StaleElementReferenceException_2", nowday, driver.page_source)
+
+		except WebDriverException:
+			print("WebDriverException")
+			print("Webドライブにエラーが発生しました。再実行します。")
 
 	for i in range(0,len(pachinko_arr)):
 		# print(pachinko_arr[i][j])
@@ -118,8 +124,11 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 		time.sleep(1)
 
 		# 修正
-		data_table = driver.find_element_by_id("data-block")
-
+		try : 
+			data_table = driver.find_element_by_id("data-block")
+		except NoSuchElementException:
+			driver.forward()
+			print("処理乙2")
 		print("処理おつ")
 
 	# テーブル目録保存
@@ -131,23 +140,44 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 
 	for i in range(1,len(trs)):
 		
-		time.sleep(1)
+		time.sleep(3)
 
 		if(i > 1):
 			switch_driver(driver)
 
-		data_table = driver.find_element_by_id("data-block")
+		try :
+			data_table = driver.find_element_by_id("data-block")
 		
-		# trのリストを取得
-		trs = data_table.find_elements(By.TAG_NAME, "tr")
-		try:
-			tds = trs[i].find_elements(By.TAG_NAME, "td")
-		except IndexError:
-			print("get table Error")
-			print("今のj: "+str(i))
+		except NoSuchElementException as e:
 			print(e)
-			get_source(driver,"IndexError", nowtime, driver.page_source)
-			continue
+			get_source(driver, "148_NoSuchElementException", nowtime, driver.page_source)
+
+		# trのリストを取得
+		try:
+			trs = data_table.find_elements(By.TAG_NAME, "tr")
+			tds = trs[i].find_elements(By.TAG_NAME, "td")
+
+		# テーブル列を超えた場合
+		except IndexError as e:
+			print("get table Error")
+			
+			print("列の配列にエラーが起きました。")
+					
+			get_source(driver,"_IndexError", nowtime, driver.page_source)
+			
+			# 本のページに戻る
+			driver.back()
+
+			time.sleep(1)
+
+			return False
+
+		except StaleElementReferenceException as e:
+			print("get table Error")
+			print("要素が見つかりません_1")
+			get_source(driver,"_StaleElementReferenceException", nowtime, driver.page_source)	
+			driver.forward()
+			return False
 
 		for j in range(0, len(tds)+1):
 
@@ -161,12 +191,15 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 				
 				try:
 					tds = trs[i].find_elements(By.TAG_NAME, "td")
+				
+				# テーブル行を超えた場合
 				except IndexError as e:
 					print("get table Error")
-					print("今のj: "+str(j))
-					print(e)
+					print("行の配列にエラーが起きました。")
 					get_source(driver,"IndexError", nowtime, driver.page_source)
-					continue
+					# 本のページに戻る
+					driver.back()
+					return False;
 
 				for a in driver.find_elements_by_xpath("/html/body/div/div[2]/table/tbody/tr["+str(i)+"]/td["+str(j)+"]/a"):
 					
