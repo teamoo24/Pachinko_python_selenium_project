@@ -34,12 +34,6 @@ nowday = datetime.now().strftime("%Y_%m_%d")
 # 画面を浮かばずに作動
 options.add_argument('--headless')
 
-# テーブル保存先の名前
-table_dir_name = nowday
-
-# テーブル情報収納ディレクトリ
-table_dir = main_func.make_table_folder_get_path(table_dir_name,Path)
-
 # カーソルを取得
 cur = conn.cursor()
 
@@ -64,7 +58,7 @@ def job():
 		# frame変更
 		main_func.switch_driver(driver)
 
-		if main_func.get_table(driver, table_dir, nowtime, nowday, Path, time, cur) == False:
+		if main_func.get_table(driver, nowtime, nowday, Path, time, cur) == False:
 			continue;
 
 		else :

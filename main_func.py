@@ -4,27 +4,6 @@ from selenium.common.exceptions import ElementNotVisibleException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import WebDriverException
 
-# 現在のスクリーンショットを撮る
-def get_screenshot(driver, path):
-	page_width = driver.execute_script('return document.body.scrollWidth')
-	page_height = driver.execute_script('return document.body.scrollHeight')
-
-	driver.set_window_size(page_width, page_height)	
-
-	driver.save_screenshot(path)
-
-
-# テーブル情報を保存するメインディレクトリ指定
-def make_table_folder_get_path(table_dir_name,Path):
-	
-	# 保存先フォルダ名
-	table_dir_path = Path("table/"+table_dir_name)
-
-	# 今日の日付のフォルダーを生成(存在してる場合スキップ)
-	table_dir_path.mkdir(exist_ok=True)
-
-	return str(table_dir_path.resolve())
-
 # ページ全体のソースを取得
 def get_source(driver, option, nowtime, source):
 	# 全体的なページのソースをdownloadページに保存
@@ -37,6 +16,7 @@ def switch_driver(driver):
 		driver.switch_to.frame(driver.find_element_by_css_selector("frame[name='contents']"))
 	except NoSuchElementException:
 		get_source(driver, "_error", "error", driver.page_source)
+
 
 #データベースを作る
 def make_database(cur):
@@ -108,7 +88,7 @@ def insert_database(driver, kishu_name, nowday, time, By, cur):
 # テーブルの情報を保存
 # driver : 現在のdriverの情報
 # data_table : メインテーブル
-def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
+def get_table(driver, nowtime, nowday, Path, time, cur):
 	# テーブル取得
 	try:
 		data_table = driver.find_element_by_id("data-block")
@@ -130,10 +110,6 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 			driver.forward()
 			print("処理乙2")
 		print("処理おつ")
-
-	# テーブル目録保存
-	with open(table_dir+'/'+nowtime+'.html','w',encoding='utf-8') as f:
-		f.write(data_table.get_attribute('innerHTML'))
 
 	# trのリストを取得
 	trs = data_table.find_elements(By.TAG_NAME, "tr")
@@ -160,14 +136,11 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 		# テーブル列を超えた場合
 		except IndexError as e:
 			print("get table Error")
-			
 			print("列の配列にエラーが起きました。")
-					
 			get_source(driver,"_IndexError", nowtime, driver.page_source)
 			
 			# 本のページに戻る
 			driver.back()
-
 			time.sleep(1)
 
 			return False
@@ -206,11 +179,6 @@ def get_table(driver, table_dir, nowtime, nowday, Path, time, cur):
 	    			# for文でテーブルごとのリンクに入る
 					kishu_name = str(a.get_attribute('innerHTML'))
 					print(kishu_name+"を作業")
-		   			# 保存先フォルダ名
-					kishu_path = Path(table_dir+"/"+kishu_name)
-
-					# 今日の日付のフォルダーを生成(存在してる場合スキップ)
-					kishu_path.mkdir(exist_ok=True)
 
 					a.click()
 
