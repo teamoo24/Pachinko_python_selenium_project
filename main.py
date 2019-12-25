@@ -75,21 +75,21 @@ def job():
 
 	# 完了報告
 	print(nowday+"の情報が保存されました。")
-
-while True:
-	job()
+# 24時間ずっと回す
+# while True:
+# 	job()
 
 # 特定時間に指定関数が動くようにする
-# schedule.every().day.at("08:00").do(job)
+schedule.every().day.at("08:00").do(job)
 
 # 現在時間にちゃんと関数が動くかを表示
-# while True:
-# 	nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-# 	nowday = datetime.now().strftime("%Y_%m_%d")
-# 	print("System is operating")
-# 	print("current time is : "+nowtime)
-# 	schedule.run_pending()
-# 	time.sleep(60)		
+while True:
+	nowtime = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+	nowday = datetime.now().strftime("%Y_%m_%d")
+	print("System is operating")
+	print("current time is : "+nowtime)
+	schedule.run_pending()
+	time.sleep(60)		
 
 
 
